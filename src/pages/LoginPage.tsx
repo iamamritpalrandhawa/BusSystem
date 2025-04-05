@@ -14,28 +14,68 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/context/AuthContext";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/store";
+import { setUser } from "@/store/userSlice";
+import { setProgress } from '@/store/progressSlice';
+import { toast } from 'sonner';
+
 
 export default function LoginPage({
     className,
     ...props
 }: React.ComponentPropsWithoutRef<"div">) {
     const router = useNavigate();
+    const { login } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const dispatch = useDispatch<AppDispatch>();
 
-    const handleLogin = (e: React.FormEvent) => {
+
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (email === "admin@busmail.in" && password === "password") {
-            router("/");
-        } else {
-            setError("Invalid credentials. Please try again.");
+        try {
+            dispatch(setProgress(30));
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    username: email,
+                    password: password,
+                }),
+            });
+            dispatch(setProgress(60));
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                dispatch(setProgress(90));
+                localStorage.setItem("token", data.token);
+                dispatch(setUser(data.user));
+                login();
+                dispatch(setProgress(100));
+
+                router("/");
+                toast.success('Login successful!');
+            } else {
+                dispatch(setProgress(100));
+                setError(data.message || "Login failed. Please try again.");
+                toast.error('Something went wrong.');
+            }
+        } catch (err) {
+            dispatch(setProgress(100));
+            console.error(err);
+            setError("An unexpected error occurred. Please try again later.");
+            toast.error('Something went wrong.');
         }
     };
 
     return (
-        <div className="w-full ">
+        <div className="w-full">
             <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
                 <div className={cn("flex flex-col gap-6", className)} {...props}>
                     <Card>

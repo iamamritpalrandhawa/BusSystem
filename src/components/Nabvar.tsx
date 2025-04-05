@@ -1,16 +1,13 @@
-/**
- * v0 by Vercel.
- * @see https://v0.dev/t/lJwnQlHSEBA
- * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
- */
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Link } from 'react-router-dom'
 import { Bus } from "lucide-react"
+import ProfileDropdown from "./ProfileDropdown"
 
 export default function Navbar() {
     return (
-        <header className="flex h-20 w-[90%] shrink-0 items-center px-4 md:px-6 justify-between" style={{ margin: '0 auto' }}>
+        <header className="flex h-20 w-[90%] shrink-0 items-center px-4 md:px-6 justify-between relative" style={{ margin: '0 auto' }}>
+            {/* Mobile Menu */}
             <Sheet>
                 <SheetTrigger asChild>
                     <Button variant="outline" size="icon" className="lg:hidden">
@@ -40,12 +37,14 @@ export default function Navbar() {
                     </div>
                 </SheetContent>
             </Sheet>
-            <Link to='/' className="mr-6 lg:flex" >
-                {/* <MountainIcon className="h-6 w-6" /> */}
+
+            {/* Logo */}
+            <Link to='/' className="mr-6 hidden lg:flex">
                 <Bus />
                 <span className="sr-only">Acme Inc</span>
             </Link>
-            <nav className="ml-auto hidden lg:flex gap-6">
+            <ProfileDropdown className="relative lg:hidden flex" />
+            <nav className="ml-auto hidden lg:flex gap-6 items-center">
                 <Link to='/'
 
                     className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:text-gray-900 focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-gray-100/50 data-[state=open]:bg-gray-100/50 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50 dark:focus:bg-gray-800 dark:focus:text-gray-50 dark:data-[active]:bg-gray-800/50 dark:data-[state=open]:bg-gray-800/50"
@@ -74,13 +73,8 @@ export default function Navbar() {
                 >
                     Route Assignment
                 </Link>
-                <Link to='/login'
 
-                    className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:text-gray-900 focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-gray-100/50 data-[state=open]:bg-gray-100/50 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50 dark:focus:bg-gray-800 dark:focus:text-gray-50 dark:data-[active]:bg-gray-800/50 dark:data-[state=open]:bg-gray-800/50"
-
-                >
-                    Profile
-                </Link>
+                <ProfileDropdown />
             </nav>
         </header>
     )

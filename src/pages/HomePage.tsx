@@ -67,7 +67,7 @@ const HomePage = () => {
                             <MapPin className="w-5 h-5 mr-2" />
                             Live Bus Locations
                         </h2>
-                        <div className="h-[400px] rounded-lg overflow-hidden ">
+                        <div className="h-[400px] rounded-lg overflow-hidden z-0 relative">
                             <MapContainer center={[31.6340, 74.8723]} zoom={13} className="h-full w-full">
                                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                                 {busLocations.map((bus) => (
