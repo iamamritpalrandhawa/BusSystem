@@ -1,3 +1,4 @@
+import { Bus } from "@/types";
 export const fetchUserData = async () => {
   try {
     const token = localStorage.getItem("token");
@@ -11,24 +12,180 @@ export const fetchUserData = async () => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // ✅ send token in header
+          Authorization: `Bearer ${token}`,
         },
       }
     );
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
     const result = await response.json();
 
     if (result.success) {
-      return result.data; // ✅ return only the data field
+      return result.data;
     } else {
       throw new Error(result.message || "Failed to fetch user data");
     }
   } catch (error) {
     console.error("Error fetching user data:", error);
+    throw error;
+  }
+};
+
+// services/studentService.ts
+
+export const fetchStudentData = async (
+  pageNo: number = 1,
+  search: string = ""
+) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No token found in localStorage");
+    }
+    const response = await fetch(
+      `https://bus-api.abhicracker.com/api/admin/users?page=${pageNo}&limit=10&search=${search}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    // ✅ Map API response to expected state shape
+    return {
+      success: data.success,
+      count: data.count,
+      pageNO: data.pagination.page,
+      pages: data.pagination.totalPages,
+      data: data.data.map(
+        (student: {
+          username: string;
+          extra: {
+            roll: string;
+            course: string;
+            address: string;
+            phone: string;
+            email: string;
+          };
+          name: string;
+        }) => ({
+          id: student.username,
+          rollnumber: student.extra.roll,
+          name: student.name,
+          stream: student.extra.course,
+          address: student.extra.address,
+          mobileNo: student.extra.phone,
+          email: student.extra.email,
+        })
+      ),
+    };
+  } catch (error) {
+    console.error("Error fetching student data:", error);
+    throw error;
+  }
+};
+
+export const fetchBusData = async (pageNo: number = 1, search: string = "") => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No token found in localStorage");
+    }
+    const response = await fetch(
+      `https://bus-api.abhicracker.com/api/buses?page=${pageNo}&limit=10&search=${search}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    return {
+      success: data.success,
+      count: data.count,
+      pageNO: data.pagination.page,
+      pages: data.pagination.totalPages,
+      data: data.data.map(
+        (bus: {
+          id: string;
+          number: string;
+          model: string;
+          capacity: string;
+          status: string;
+        }) => ({
+          id: bus.id,
+          number: bus.number,
+          model: bus.model,
+          capacity: bus.capacity,
+          status: bus.status,
+        })
+      ),
+    };
+  } catch (error) {
+    console.error("Error fetching student data:", error);
+    throw error;
+  }
+};
+
+export const editBusData = async (data: Bus) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No token found in localStorage");
+    }
+    const { id, ...dataWithoutId } = data;
+
+    const response = await fetch(
+      `https://bus-api.abhicracker.com/api/buses/${id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+
+        body: JSON.stringify(dataWithoutId),
+      }
+    );
+
+    const result = await response.json();
+
+    return result;
+  } catch (error) {
+    console.error("Error editing bus data:", error);
+    throw error;
+  }
+};
+
+export const deleteBusData = async (id: string) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No token found in localStorage");
+    }
+    const response = await fetch(
+      `https://bus-api.abhicracker.com/api/buses/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const result = await response.json();
+
+    return result;
+  } catch (error) {
+    console.error("Error deleting bus data:", error);
     throw error;
   }
 };
