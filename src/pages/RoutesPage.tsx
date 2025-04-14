@@ -65,21 +65,19 @@ interface Stop {
 }
 
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371; // Earth's radius in kilometers
+    const R = 6371; // Earth's radius in km
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+    return R * c; // Distance in kilometers
 }
 
 function estimateTravelTime(distance: number): number {
-    const averageSpeed = 30; // km/h
-    return (distance / averageSpeed) * 60; // Convert to minutes
+    const averageSpeed = 35; // Average speed in km/h
+    return (distance / averageSpeed) * 60; // Time in minutes
 }
+
 
 function MapEvents({ onMapClick }: { onMapClick: (latlng: LatLng) => void }) {
     useMapEvents({
@@ -224,33 +222,24 @@ export function CreateRoute() {
     const handleMapClick = async (latlng: LatLng) => {
         const nearest = await getNearestRoad(latlng.lat, latlng.lng);
         if (!nearest) {
-            alert('No road nearby. Please select a point closer to a road.');
+            toast.error('No road nearby. Please select a point closer to a road.');
             return;
         }
-
         if (editingStopId) {
-            // Update the location of the stop being edited
             setStops((prevStops) => {
-                const updatedStops = prevStops.map(stop => {
+                const updatedStops = prevStops.map((stop) => {
                     if (stop.id === editingStopId) {
-                        return {
-                            ...stop,
-                            latitude: nearest.lat,
-                            longitude: nearest.lng,
-                        };
+                        return { ...stop, latitude: nearest.lat, longitude: nearest.lng };
                     }
                     return stop;
                 });
                 return updateDistances(updatedStops);
             });
-            setEditingStopId(null); // Reset editing state
+            setEditingStopId(null); // Reset editing state after saving changes
         } else {
             setSelectedLocation(new LatLng(nearest.lat, nearest.lng));
         }
     };
-
-
-
 
     const updateDistances = (newStops: Stop[]): Stop[] => {
         return newStops.map((stop, index) => {
@@ -280,8 +269,12 @@ export function CreateRoute() {
                 distanceFromPrevious: 0,
                 estimatedTime: 0,
             };
-            const newStops = [...stops, newStop];
-            setStops(() => updateDistances(newStops));
+
+            // Use a functional update to avoid closures
+            setStops(prevStops => {
+                const newStops = [...prevStops, newStop];
+                return updateDistances(newStops);
+            });
             setSelectedLocation(null);
             setStopName('');
         }
@@ -317,10 +310,9 @@ export function CreateRoute() {
 
     const onSubmit = async (data: RouteFormData) => {
         if (stops.length < 2) {
-            alert('Please add at least two stops to create a route');
+            toast.error('Please add at least two stops to create a route');
             return;
         }
-
         const routeData = {
             name: data.name,
             startLocation: stops[0].stopName,
@@ -328,13 +320,10 @@ export function CreateRoute() {
             distanceKm: totalDistance,
             totalTime: String(totalTime),
         };
-
         try {
-            // Create the route
             const routeResponse = await createRoute(routeData);
-
             if (routeResponse.success) {
-                const stopsData = stops.map(stop => ({
+                const stopsData = stops.map((stop) => ({
                     stopName: stop.stopName,
                     latitude: stop.latitude,
                     longitude: stop.longitude,
@@ -342,40 +331,32 @@ export function CreateRoute() {
                     distanceFromPrevious: stop.distanceFromPrevious,
                     estimatedTime: stop.estimatedTime,
                 }));
-
                 try {
-                    // Save the stops to the route
                     const saveResponse = await saveStops(routeResponse.data.id, stopsData);
-
-                    // Check if the response is successful
                     if (saveResponse.success) {
                         toast.success('Stops saved successfully!');
                     } else {
                         throw new Error('Failed to save stops');
                     }
-
                 } catch (error) {
                     console.error("Error saving stops:", error);
                     toast.error('Failed to save stops. Please try again.');
                 }
-
             } else {
                 toast.error('Failed to create route.');
             }
-
         } catch (error) {
             console.error('Error creating route or saving stops:', error);
             toast.error('Something went wrong.');
         } finally {
+            // Reset states after successful route creation
             setStops([]);
             setSelectedLocation(null);
             setStopName('');
             reset();
-            dispatch(setProgress(100));
+            dispatch(setProgress(100)); // Update progress to 100% after route creation
         }
     };
-
-
 
     return (
         <>
@@ -470,7 +451,7 @@ export function CreateRoute() {
                         </div>
 
 
-                        <div className="h-[550px] rounded-lg overflow-hidden border border-gray-200">
+                        <div className="h-[550px] rounded-lg overflow-hidden border border-gray-200 z-0 relative">
                             <MapContainer
                                 center={[31.6340, 74.8723]}
                                 zoom={13}
@@ -482,10 +463,8 @@ export function CreateRoute() {
                                 />
                                 <MapEvents onMapClick={handleMapClick} />
 
-                                {stops.length > 1 && (
-                                    <Polyline positions={routePolyline} color="blue" />
+                                {stops.length > 1 && <Polyline positions={routePolyline} color="blue" />}
 
-                                )}
 
                                 {selectedLocation && (
                                     <Marker position={selectedLocation} icon={defaultIcon}>
@@ -503,6 +482,7 @@ export function CreateRoute() {
                                                     onClick={(e) => {
                                                         e.stopPropagation(); // ⛔️ Prevent map click
                                                         setSelectedLocation(null);
+                                                        setStopName('');
                                                     }}
                                                 >
                                                     Remove
