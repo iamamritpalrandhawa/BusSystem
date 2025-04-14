@@ -189,3 +189,71 @@ export const deleteBusData = async (id: string) => {
     throw error;
   }
 };
+
+// src/api/routeApi.ts
+
+export const getToken = () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    throw new Error("Authentication token not found");
+  }
+  return token;
+};
+
+export const createRoute = async (data: {
+  name: string;
+  startLocation: string;
+  endLocation: string;
+  distanceKm: number;
+  totalTime: string;
+}) => {
+  const token = getToken();
+
+  const response = await fetch("https://bus-api.abhicracker.com/api/routes", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  const responseData = await response.json();
+
+  return responseData;
+};
+
+export const saveStops = async (
+  routeId: string, // The routeId for the specific route
+  stops: Array<{
+    stopName: string;
+    latitude: number;
+    longitude: number;
+    stopOrder: number;
+    distanceFromPrevious: number;
+    estimatedTime: number;
+  }>
+) => {
+  const token = getToken(); // Retrieve token for authorization
+
+  try {
+    // Send POST request to add stops to a specific route
+    const response = await fetch(
+      `https://bus-api.abhicracker.com/api/routes/${routeId}/stops`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(stops),
+      }
+    );
+
+    const responseData = await response.json();
+
+    return responseData;
+  } catch (error) {
+    console.error("Error saving stops:", error);
+  }
+};

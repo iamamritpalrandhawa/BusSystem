@@ -19,6 +19,11 @@ import 'leaflet/dist/leaflet.css';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import Navbar from '@/components/Nabvar';
+import { createRoute, saveStops } from '@/api';
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/store";
+import { setProgress } from '@/store/progressSlice';
+import { toast } from 'sonner';
 
 const defaultIcon = new Icon({
     iconUrl: icon,
@@ -156,6 +161,7 @@ export function CreateRoute() {
     const [stopName, setStopName] = useState('');
     const [editingStopId, setEditingStopId] = useState<string | null>(null);
     const [routePolyline, setRoutePolyline] = useState<[number, number][]>([]);
+    const dispatch = useDispatch<AppDispatch>();
 
     async function getNearestRoad(lat: number, lng: number): Promise<{ lat: number; lng: number } | null> {
         try {
@@ -211,7 +217,7 @@ export function CreateRoute() {
         })
     );
 
-    const { register, handleSubmit, formState: { errors } } = useForm<RouteFormData>({
+    const { register, handleSubmit, formState: { errors }, reset } = useForm<RouteFormData>({
         resolver: zodResolver(routeSchema),
     });
 
@@ -316,40 +322,60 @@ export function CreateRoute() {
         }
 
         const routeData = {
-            ...data,
+            name: data.name,
             startLocation: stops[0].stopName,
             endLocation: stops[stops.length - 1].stopName,
             distanceKm: totalDistance,
-            stops: stops.map(({ stopName, latitude, longitude, stopOrder, distanceFromPrevious, estimatedTime }) => ({
-                stopName,
-                latitude,
-                longitude,
-                stopOrder,
-                distanceFromPrevious,
-                estimatedTime,
-            })),
+            totalTime: String(totalTime),
         };
 
         try {
-            const response = await fetch('/api/routes', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(routeData),
-            });
+            // Create the route
+            const routeResponse = await createRoute(routeData);
 
-            if (!response.ok) {
-                throw new Error('Failed to create route');
+            if (routeResponse.success) {
+                const stopsData = stops.map(stop => ({
+                    stopName: stop.stopName,
+                    latitude: stop.latitude,
+                    longitude: stop.longitude,
+                    stopOrder: stop.stopOrder,
+                    distanceFromPrevious: stop.distanceFromPrevious,
+                    estimatedTime: stop.estimatedTime,
+                }));
+
+                try {
+                    // Save the stops to the route
+                    const saveResponse = await saveStops(routeResponse.data.id, stopsData);
+
+                    // Check if the response is successful
+                    if (saveResponse.success) {
+                        toast.success('Stops saved successfully!');
+                    } else {
+                        throw new Error('Failed to save stops');
+                    }
+
+                } catch (error) {
+                    console.error("Error saving stops:", error);
+                    toast.error('Failed to save stops. Please try again.');
+                }
+
+            } else {
+                toast.error('Failed to create route.');
             }
 
+        } catch (error) {
+            console.error('Error creating route or saving stops:', error);
+            toast.error('Something went wrong.');
+        } finally {
             setStops([]);
             setSelectedLocation(null);
             setStopName('');
-        } catch (error) {
-            console.error('Error creating route:', error);
+            reset();
+            dispatch(setProgress(100));
         }
     };
+
+
 
     return (
         <>
@@ -462,17 +488,25 @@ export function CreateRoute() {
                                 )}
 
                                 {selectedLocation && (
-                                    <Marker
-                                        position={selectedLocation}
-                                        icon={defaultIcon}
-                                    >
+                                    <Marker position={selectedLocation} icon={defaultIcon}>
                                         <Popup>
-                                            <div className="text-center">
-                                                <MapPin className="inline-block" size={18} />
-                                                <p className="font-medium">Selected Location</p>
-                                                <p className="text-sm text-gray-600">
+                                            <div className="text-center space-y-1" style={{ minWidth: '120px', padding: '4px' }}>
+                                                <MapPin className="inline-block text-primary mb-1" size={14} />
+                                                <p className="font-medium text-sm">Selected Location</p>
+                                                <p className="text-xs text-gray-600">
                                                     {selectedLocation.lat.toFixed(4)}, {selectedLocation.lng.toFixed(4)}
                                                 </p>
+
+                                                {/* Deselect button */}
+                                                <button
+                                                    className="mt-1 text-xs text-red-500 hover:underline"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation(); // ⛔️ Prevent map click
+                                                        setSelectedLocation(null);
+                                                    }}
+                                                >
+                                                    Remove
+                                                </button>
                                             </div>
                                         </Popup>
                                     </Marker>
@@ -485,13 +519,13 @@ export function CreateRoute() {
                                         icon={index === 0 ? startIcon : index === stops.length - 1 ? endIcon : defaultIcon}
                                     >
                                         <Popup>
-                                            <div className="text-center">
-                                                <MapPin className="inline-block" size={18} />
-                                                <p className="font-medium">{stop.stopName}</p>
-                                                <p className="text-sm text-gray-600">Stop #{stop.stopOrder}</p>
+                                            <div className="text-center space-y-1" style={{ minWidth: '120px', padding: '4px' }}>
+                                                <MapPin className="inline-block text-primary mb-1" size={14} />
+                                                <p className="font-medium text-sm">{stop.stopName}</p>
+                                                <p className="text-xs text-gray-600">Stop #{stop.stopOrder}</p>
                                                 {stop.distanceFromPrevious > 0 && (
-                                                    <p className="text-sm text-gray-600">
-                                                        Distance from previous: {stop.distanceFromPrevious.toFixed(2)} km
+                                                    <p className="text-xs text-gray-600">
+                                                        Distance: {stop.distanceFromPrevious.toFixed(2)} km
                                                     </p>
                                                 )}
                                             </div>
