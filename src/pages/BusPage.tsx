@@ -16,7 +16,7 @@ import { AppDispatch } from "@/store";
 import { setProgress } from '@/store/progressSlice';
 import { toast } from 'sonner';
 
-function BusPage1() {
+function BusPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [busData, setBusData] = useState<BusResponse>({ success: true, count: 0, pageNO: 1, pages: 1, data: [] });
@@ -38,20 +38,25 @@ function BusPage1() {
     });
 
     useEffect(() => {
-        const getData = async () => {
-            try {
-                dispatch(setProgress(30));
-                const data = await fetchBusData(currentPage, searchQuery);
-                dispatch(setProgress(70));
-                setBusData(data);
-                dispatch(setProgress(100));
-            } catch (error) {
-                dispatch(setProgress(100));
-                console.error(error);
-            }
-        };
-        getData();
-    }, [currentPage, searchQuery]);
+        const delayDebounce = setTimeout(() => {
+            const getData = async () => {
+                try {
+                    dispatch(setProgress(30));
+                    const data = await fetchBusData(currentPage, searchQuery);
+                    dispatch(setProgress(70));
+                    setBusData(data);
+                    dispatch(setProgress(100));
+                } catch (error) {
+                    dispatch(setProgress(100));
+                    console.error(error);
+                }
+            };
+            getData();
+        }, 800); // Debounce: 500ms delay
+
+        return () => clearTimeout(delayDebounce); // Clean up on re-render
+    }, [currentPage, searchQuery, dispatch]);
+
 
     useEffect(() => {
         if (editingBus) {
@@ -112,7 +117,6 @@ function BusPage1() {
         try {
             dispatch(setProgress(30));
             const value = await editBusData(data);
-            console.log("🚀 ~ onSubmit ~ value:", value)
             if (value.success) {
                 setBusData(prevState => ({
                     ...prevState,
@@ -346,4 +350,4 @@ function BusPage1() {
     );
 }
 
-export default BusPage1;
+export default BusPage;

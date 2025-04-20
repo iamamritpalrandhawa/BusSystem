@@ -38,21 +38,26 @@ function StudentPage() {
     const dispatch = useDispatch<AppDispatch>();
 
     useEffect(() => {
-        const getData = async () => {
-            try {
-                dispatch(setProgress(30));
-                const data = await fetchStudentData(currentPage, searchQuery);
-                dispatch(setProgress(70));
-                setStudentData(data);
-                dispatch(setProgress(100));
-            } catch (error) {
-                dispatch(setProgress(100));
-                console.error(error);
-            }
-        };
+        const delayDebounce = setTimeout(() => {
+            const getData = async () => {
+                try {
+                    dispatch(setProgress(30));
+                    const data = await fetchStudentData(currentPage, searchQuery);
+                    dispatch(setProgress(70));
+                    setStudentData(data);
+                    dispatch(setProgress(100));
+                } catch (error) {
+                    dispatch(setProgress(100));
+                    console.error(error);
+                }
+            };
 
-        getData();
-    }, [currentPage, searchQuery]);
+            getData();
+        }, 800); // 500ms debounce delay
+
+        return () => clearTimeout(delayDebounce); // Cleanup timeout
+    }, [currentPage, searchQuery, dispatch]);
+
 
 
     const handleSearch = (query: string) => {

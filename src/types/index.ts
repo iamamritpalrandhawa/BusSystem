@@ -1,13 +1,3 @@
-export interface Route {
-  id: string;
-  name: string;
-  startLocation: string;
-  endLocation: string;
-  stops: string[];
-  distance: number;
-  estimatedDuration: number;
-}
-
 export interface BusSchedule {
   id: string;
   departureTime: string;
@@ -55,4 +45,40 @@ export type BusResponse = {
   pageNO: number;
   pages: number;
   data: Bus[];
+};
+
+export interface Stop {
+  id: string;
+  routeId: string;
+  stopName: string;
+  latitude: number;
+  longitude: number;
+  stopOrder: number;
+  distanceFromPrevious: number;
+  estimatedTime: number;
+}
+
+export interface Count {
+  stops: number;
+  buses: number;
+  schedules: number;
+}
+
+export interface Route {
+  id: string;
+  name: string;
+  startLocation: string;
+  endLocation: string;
+  distanceKm: number;
+  totalTime: string;
+  stops: Stop[];
+  _count: Count;
+}
+
+export type RouteResponse = {
+  success: boolean;
+  count: number;
+  pageNO: number;
+  pages: number;
+  data: Route[];
 };

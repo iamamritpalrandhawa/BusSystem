@@ -10,6 +10,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { DragEndEvent } from '@dnd-kit/core';
+import { useNavigate } from 'react-router-dom';
 
 import { CSS } from '@dnd-kit/utilities';
 
@@ -153,13 +154,15 @@ function SortableStop({ stop, onRemove, onClick }: { stop: Stop; onRemove: (id: 
 }
 
 
-export function CreateRoute() {
+export default function CreateRoute() {
     const [stops, setStops] = useState<Stop[]>([]);
     const [selectedLocation, setSelectedLocation] = useState<LatLng | null>(null);
     const [stopName, setStopName] = useState('');
     const [editingStopId, setEditingStopId] = useState<string | null>(null);
     const [routePolyline, setRoutePolyline] = useState<[number, number][]>([]);
     const dispatch = useDispatch<AppDispatch>();
+    const navigate = useNavigate();
+
 
     async function getNearestRoad(lat: number, lng: number): Promise<{ lat: number; lng: number } | null> {
         try {
@@ -334,6 +337,7 @@ export function CreateRoute() {
                 try {
                     const saveResponse = await saveStops(routeResponse.data.id, stopsData);
                     if (saveResponse.success) {
+                        navigate("/")
                         toast.success('Stops saved successfully!');
                     } else {
                         throw new Error('Failed to save stops');
