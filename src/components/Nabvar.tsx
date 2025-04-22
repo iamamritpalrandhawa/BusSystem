@@ -10,7 +10,7 @@ export default function Navbar() {
             <Sheet>
                 <SheetTrigger asChild>
                     <Button variant="outline" size="icon" className="lg:hidden">
-                        <MenuIcon className="h-6 w-6" />
+                        <MenuIcon />
                         <span className="sr-only">Toggle navigation menu</span>
                     </Button>
                 </SheetTrigger>
@@ -88,7 +88,8 @@ export default function Navbar() {
         </header>
     )
 }
-function MenuIcon(props: unknown) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function MenuIcon(props: any) {
     return (
         <svg
             {...props}

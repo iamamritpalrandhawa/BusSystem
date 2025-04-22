@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import { Bus, Route, Clock, MapPin } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
-import type { Bus as BusType, Route as RouteType } from '../types';
+import type { Bus as BusType } from '../types';
 import Navbar from '@/components/Nabvar';
 import L from 'leaflet';
 import { useWebSocket } from "../context/WebSocketContext";
@@ -11,13 +11,13 @@ import { useEffect, useState } from 'react';
 
 
 const activeBuses: BusType[] = [
-    { id: '1', number: 'BUS-101', capacity: 40, model: 'Volvo 9400', routeId: 'R1', status: 'active', schedules: [] },
-    { id: '2', number: 'BUS-102', capacity: 35, model: 'Mercedes-Benz Citaro', routeId: 'R2', status: 'active', schedules: [] }
+    { id: '1', number: 'BUS-101', capacity: 40, model: 'Volvo 9400', status: 'active', },
+    { id: '2', number: 'BUS-102', capacity: 35, model: 'Mercedes-Benz Citaro', status: 'active', }
 ];
 
-const routes: RouteType[] = [
-    { id: 'R1', name: 'Golden Temple - Amritsar Junction', startLocation: 'Golden Temple', endLocation: 'Amritsar Junction', stops: ['Hall Bazaar', 'Bus Stand', 'Railway Station'], distance: 6, estimatedDuration: 20 },
-    { id: 'R2', name: 'Ranjit Avenue - Wagah Border', startLocation: 'Ranjit Avenue', endLocation: 'Wagah Border', stops: ['Chheharta', 'Attari'], distance: 30, estimatedDuration: 50 }
+const routes = [
+    { id: 'R1', name: 'Golden Temple - Amritsar Junction', startLocation: 'Golden Temple', endLocation: 'Amritsar Junction' },
+    { id: 'R2', name: 'Ranjit Avenue - Wagah Border', startLocation: 'Ranjit Avenue', endLocation: 'Wagah Border' }
 ];
 
 const busLocations = [
