@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from 'react-leaflet';
-import { LatLng, Icon, } from 'leaflet';
+import { LatLng, Icon } from 'leaflet';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,11 +11,8 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSo
 import { useSortable } from '@dnd-kit/sortable';
 import { DragEndEvent } from '@dnd-kit/core';
 import { useParams } from 'react-router-dom';
-
 import { CSS } from '@dnd-kit/utilities';
-
 import 'leaflet/dist/leaflet.css';
-
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import Navbar from '@/components/Nabvar';
@@ -23,7 +20,8 @@ import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/store";
 import { setProgress } from '@/store/progressSlice';
 import { toast } from 'sonner';
-import { fetchStops, updateRoute, updateStops } from '@/api';
+
+import { fetchRoute, updateRoute, updateStops } from '@/api';
 import { useNavigate } from 'react-router-dom';
 
 const defaultIcon = new Icon({
@@ -105,19 +103,19 @@ function SortableStop({ stop, onRemove, onClick }: { stop: Stop; onRemove: (id: 
         <motion.li
             ref={setNodeRef}
             style={style}
-            className="flex items-center justify-between p-4 rounded-lg shadow-md border border-gray-200"
+            className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4 hover:bg-white/10 transition-colors flex"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
         >
             <div className="flex-1">
                 <div className="flex items-center gap-2">
-                    <div {...attributes} {...listeners} className="cursor-move">
+                    <div {...attributes} {...listeners} className="cursor-move text-white/60 hover:text-white/80 transition-colors">
                         <div className="w-6 h-6 flex items-center justify-center">⋮⋮</div>
                     </div>
                     <span className="font-medium text-white">{stop.stopName}</span>
                 </div>
-                <div className="mt-2 space-y-1 text-sm text-white">
+                <div className="mt-2 space-y-2 text-sm text-white/70">
                     <p className="flex items-center gap-2">
                         <MapPin size={16} />
                         {stop.latitude.toFixed(4)}, {stop.longitude.toFixed(4)}
@@ -136,23 +134,23 @@ function SortableStop({ stop, onRemove, onClick }: { stop: Stop; onRemove: (id: 
                     )}
                 </div>
             </div>
-            <button
-                onClick={() => onClick(stop.id)} // Handle onClick event
-                className="ml-2 p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-full transition-colors"
-            >
-                <Edit size={18} />
-            </button>
-
-            <button
-                onClick={() => onRemove(stop.id)}
-                className="ml-4 p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
-            >
-                <Trash2 size={18} />
-            </button>
+            <div className="flex items-center gap-2 mt-3">
+                <button
+                    onClick={() => onClick(stop.id)}
+                    className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 rounded-full transition-colors"
+                >
+                    <Edit size={18} />
+                </button>
+                <button
+                    onClick={() => onRemove(stop.id)}
+                    className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-full transition-colors"
+                >
+                    <Trash2 size={18} />
+                </button>
+            </div>
         </motion.li>
     );
 }
-
 
 export default function UpdateRoute() {
     const [stops, setStops] = useState<Stop[]>([]);
@@ -211,8 +209,6 @@ export default function UpdateRoute() {
         }
     }, [stops]);
 
-
-
     const sensors = useSensors(
         useSensor(PointerSensor),
         useSensor(KeyboardSensor, {
@@ -227,7 +223,7 @@ export default function UpdateRoute() {
         const fetchData = async () => {
             if (!routeId) return;
 
-            const route = await fetchStops(routeId);
+            const route = await fetchRoute(routeId);
 
             if (route) {
                 reset({ name: route.name });
@@ -417,162 +413,184 @@ export default function UpdateRoute() {
     return (
         <>
             <Navbar />
-            <div className="grid grid-cols-1 lg:grid-cols-2 px-6">
-                <div >
-                    <div className=" pt-6 rounded-lg shadow-md">
-                        <h2 className="text-xl font-semibold mb-6">Update Route</h2>
-                        <label className="block text-sm font-medium text-gray-700">Route Name</label>
-                        <form onSubmit={handleSubmit(onSubmit)} className="flex items-center space-x-2 w-full">
-                            <input
-                                type="text"
-                                {...register('name')}
-                                placeholder="Enter route name"
-                                className=" mt-2 flex-grow h-12 rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 px-3 text-black"
-                            />
-                            <button
-                                type="submit"
-                                disabled={stops.length < 2}
-                                className="mt-2 h-12 rounded-md bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors px-5"
-                            >
-                                Update Route
-                            </button>
-                        </form>
-                        {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+            <div className="max-h-[80vh]  text-white p-6">
+                <div className=" mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="space-y-6">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10"
+                        >
+                            <h2 className="text-xl font-semibold mb-6">Update Route</h2>
+                            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-white/70 mb-2">Route Name</label>
+                                    <div className="flex gap-3">
+                                        <input
+                                            type="text"
+                                            {...register('name')}
+                                            placeholder="Enter route name"
+                                            className="flex-1 h-12 rounded-lg border-white/10 bg-white/5 text-white placeholder-white/30 focus:border-white/20 focus:ring-white/20 p-4"
+                                        />
+                                        <button
+                                            type="submit"
+                                            disabled={stops.length < 2}
+                                            className="px-6 h-12 bg-white text-black rounded-lg hover:bg-white/90 disabled:bg-white/20 disabled:text-white/40 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            Update Route
+                                        </button>
+                                    </div>
+                                    {errors.name && <p className="text-red-400 text-sm mt-2">{errors.name.message}</p>}
+                                </div>
 
-                        {stops.length >= 2 && (
-                            <div className="p-4 rounded-md">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <p className="text-sm text-gray-600">Total Distance</p>
-                                        <p className="text-lg font-semibold">{totalDistance.toFixed(2)} km</p>
+                                {stops.length >= 2 && (
+                                    <div className="grid grid-cols-2 gap-4 mt-6 p-4 bg-white/5 rounded-lg border border-white/10">
+                                        <div>
+                                            <p className="text-sm text-white/60">Total Distance</p>
+                                            <p className="text-2xl font-semibold mt-1">{totalDistance.toFixed(2)} km</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-white/60">Total Time</p>
+                                            <p className="text-2xl font-semibold mt-1">{Math.round(totalTime)} min</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-sm text-gray-600">Total Time</p>
-                                        <p className="text-lg font-semibold">{Math.round(totalTime)} min</p>
-                                    </div>
+                                )}
+                            </form>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                            className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 max-h-[70vh] overflow-y-auto"
+                        >
+
+                            <h3 className="text-lg font-medium mb-4">Stops ({stops.length})</h3>
+                            <DndContext
+                                sensors={sensors}
+                                collisionDetection={closestCenter}
+                                onDragEnd={handleDragEnd}
+                            >
+                                <SortableContext items={stops} strategy={verticalListSortingStrategy}>
+                                    <AnimatePresence>
+                                        {stops.length > 0 ? (
+                                            <ul className="space-y-3 max-h-[21rem] overflow-y-auto pr-2 custom-scrollbar">
+                                                {stops.map((stop) => (
+                                                    <SortableStop
+                                                        key={stop.id}
+                                                        stop={stop}
+                                                        onRemove={handleRemoveStop}
+                                                        onClick={(id) => setEditingStopId(id)}
+                                                    />
+                                                ))}
+                                            </ul>
+                                        ) : (
+                                            <div className="text-center py-8 text-white/40">
+                                                <MapPin size={48} className="mx-auto mb-4 opacity-50" />
+                                                <p>Click on the map to add stops</p>
+                                            </div>
+                                        )}
+                                    </AnimatePresence>
+                                </SortableContext>
+                            </DndContext>
+                        </motion.div>
+                    </div>
+
+                    <div className="space-y-6">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10"
+                        >
+                            <h2 className="text-xl font-semibold mb-6">Add Stops</h2>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-white/70 mb-2">Stop Name</label>
+                                <div className="flex gap-3">
+                                    <input
+                                        type="text"
+                                        value={stopName}
+                                        onChange={(e) => setStopName(e.target.value)}
+                                        placeholder="Enter stop name"
+                                        className="flex-1 h-12 rounded-lg border-white/10 bg-white/5 text-white placeholder-white/30 focus:border-white/20 focus:ring-white/20 p-4"
+                                    />
+                                    <button
+                                        onClick={handleAddStop}
+                                        disabled={!selectedLocation || !stopName}
+                                        className="flex items-center px-6 h-12 bg-white text-black rounded-lg hover:bg-white/90 disabled:bg-white/20 disabled:text-white/40 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        <Plus size={18} className="mr-2" />
+                                        Add
+                                    </button>
                                 </div>
                             </div>
-                        )}
-                    </div>
 
-                    <div className=" pb-6 pt-4 rounded-lg shadow-md">
-                        <h3 className="text-lg font-medium mb-4 text-gray-100">Stops ({stops.length})</h3>
-                        <DndContext
-                            sensors={sensors}
-                            collisionDetection={closestCenter}
-                            onDragEnd={handleDragEnd}
-                        >
-                            <SortableContext items={stops} strategy={verticalListSortingStrategy}>
-                                <AnimatePresence>
-                                    <ul className="space-y-3 text-gray-100 max-h-[26rem] overflow-y-auto pr-2 custom-scrollbar">
-                                        {stops.map((stop) => (
-                                            <SortableStop
-                                                key={stop.id}
-                                                stop={stop}
-                                                onRemove={handleRemoveStop}
-                                                onClick={(id: string) => setEditingStopId(id)}
-                                            />
-
-                                        ))}
-                                    </ul>
-                                </AnimatePresence>
-                            </SortableContext>
-                        </DndContext>
-                    </div>
-
-                </div>
-
-                <div className="space-y-6">
-                    <div className=" pl-6 py-6 rounded-lg shadow-md">
-                        <h2 className="text-xl font-semibold mb-6">Add Stops</h2>
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700">Stop Name</label>
-                            <div className="mt-2 flex space-x-2">
-                                <input
-                                    type="text"
-                                    value={stopName}
-                                    onChange={(e) => setStopName(e.target.value)}
-                                    placeholder="Enter stop name"
-                                    className="block w-full h-12 rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 px-3 text-black placeholder-gray-400"
-                                />
-                                <button
-                                    onClick={handleAddStop}
-                                    disabled={!selectedLocation || !stopName}
-                                    className="flex items-center px-3 h-11 bg-gray-800 rounded-md  disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                            <div className="h-[520px] rounded-lg overflow-hidden border border-white/10">
+                                <MapContainer
+                                    center={[31.6340, 74.8723]}
+                                    zoom={13}
+                                    className="h-full w-full"
                                 >
-                                    <Plus size={18} className="mr-1" />
-                                    Add
-                                </button>
-                            </div>
-                        </div>
-
-
-                        <div className="h-[550px] rounded-lg overflow-hidden border border-gray-200 z-0 relative">
-                            <MapContainer
-                                center={[31.6340, 74.8723]}
-                                zoom={13}
-                                className="h-full w-full"
-                            >
-                                <TileLayer
-                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                />
-                                <MapEvents onMapClick={handleMapClick} />
-
-                                {stops.length > 1 && <Polyline positions={routePolyline} color="blue" />}
-
-
-                                {selectedLocation && (
-                                    <Marker position={selectedLocation} icon={defaultIcon}>
-                                        <Popup>
-                                            <div className="text-center space-y-1" style={{ minWidth: '120px', padding: '4px' }}>
-                                                <MapPin className="inline-block text-primary mb-1" size={14} />
-                                                <p className="font-medium text-sm">Selected Location</p>
-                                                <p className="text-xs text-gray-600">
-                                                    {selectedLocation.lat.toFixed(4)}, {selectedLocation.lng.toFixed(4)}
-                                                </p>
-
-                                                {/* Deselect button */}
-                                                <button
-                                                    className="mt-1 text-xs text-red-500 hover:underline"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation(); // ⛔️ Prevent map click
-                                                        setSelectedLocation(null);
-                                                        setStopName('');
-                                                    }}
-                                                >
-                                                    Remove
-                                                </button>
-                                            </div>
-                                        </Popup>
-                                    </Marker>
-                                )}
-
-                                {stops.map((stop, index) => (
-                                    <Marker
-                                        key={stop.id}
-                                        position={[stop.latitude, stop.longitude]}
-                                        icon={index === 0 ? startIcon : index === stops.length - 1 ? endIcon : defaultIcon}
-                                    >
-                                        <Popup>
-                                            <div className="text-center space-y-1" style={{ minWidth: '120px', padding: '4px' }}>
-                                                <MapPin className="inline-block text-primary mb-1" size={14} />
-                                                <p className="font-medium text-sm">{stop.stopName}</p>
-                                                <p className="text-xs text-gray-600">Stop #{stop.stopOrder}</p>
-                                                {stop.distanceFromPrevious > 0 && (
-                                                    <p className="text-xs text-gray-600">
-                                                        Distance: {stop.distanceFromPrevious.toFixed(2)} km
+                                    <TileLayer
+                                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                    />
+                                    <MapEvents onMapClick={handleMapClick} />
+                                    {stops.length > 1 && <Polyline positions={routePolyline} color="blue" />}
+                                    {selectedLocation && (
+                                        <Marker
+                                            position={selectedLocation}
+                                            icon={defaultIcon}
+                                        >
+                                            <Popup>
+                                                <div className="text-center">
+                                                    <MapPin className="inline-block" size={18} />
+                                                    <p className="font-medium">Selected Location</p>
+                                                    <p className="text-sm text-gray-600">
+                                                        {selectedLocation.lat.toFixed(4)}, {selectedLocation.lng.toFixed(4)}
                                                     </p>
-                                                )}
-                                            </div>
-                                        </Popup>
-                                    </Marker>
-                                ))}
-                            </MapContainer>
-                        </div>
+
+                                                    {/* Deselect button */}
+                                                    <button
+                                                        className="mt-1 text-xs text-red-500 hover:underline"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation(); // ⛔️ Prevent map click
+                                                            setSelectedLocation(null);
+                                                            setStopName('');
+                                                        }}
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                            </Popup>
+                                        </Marker>
+                                    )}
+                                    {stops.map((stop, index) => (
+                                        <Marker
+                                            key={stop.id}
+                                            position={[stop.latitude, stop.longitude]}
+                                            icon={index === 0 ? startIcon : index === stops.length - 1 ? endIcon : defaultIcon}
+                                        >
+                                            <Popup>
+                                                <div className="text-center">
+                                                    <MapPin className="inline-block" size={18} />
+                                                    <p className="font-medium">{stop.stopName}</p>
+                                                    <p className="text-sm text-gray-600">Stop #{stop.stopOrder}</p>
+                                                    {stop.distanceFromPrevious > 0 && (
+                                                        <p className="text-sm text-gray-600">
+                                                            Distance from previous: {stop.distanceFromPrevious.toFixed(2)} km
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </Popup>
+                                        </Marker>
+                                    ))}
+                                </MapContainer>
+                            </div>
+                        </motion.div>
                     </div>
                 </div>
-            </div >
+            </div>
         </>
     );
 }

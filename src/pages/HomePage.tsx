@@ -1,9 +1,14 @@
 import { Link } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import { Bus, Route, Clock, MapPin } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import type { Bus as BusType, Route as RouteType } from '../types';
 import Navbar from '@/components/Nabvar';
+import L from 'leaflet';
+import { useWebSocket } from "../context/WebSocketContext";
+import { useEffect, useState } from 'react';
+
+
 
 const activeBuses: BusType[] = [
     { id: '1', number: 'BUS-101', capacity: 40, model: 'Volvo 9400', routeId: 'R1', status: 'active', schedules: [] },
@@ -17,7 +22,6 @@ const routes: RouteType[] = [
 
 const busLocations = [
     { id: 1, position: [31.619980, 74.876485], busNumber: 'BUS-101' }, // Near Golden Temple
-    { id: 2, position: [31.633980, 74.872260], busNumber: 'BUS-102' }  // Near Amritsar Junction
 ];
 const upcomingSchedules = [
     { id: 1, busNumber: 'BUS-101', route: 'Golden Temple - Amritsar Junction', departure: '08:00 AM' },
@@ -29,6 +33,38 @@ const upcomingSchedules = [
 
 
 const HomePage = () => {
+    const [busLocation, setBusLocation] = useState<{ lat: number; lng: number, hdop: number; } | null>(null);
+
+    const busLocationIcon = L.divIcon({
+        html: `<div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-md"></div>`,
+        className: '', // remove default leaflet styles
+        iconSize: [16, 16],
+        iconAnchor: [8, 8], // center the icon
+    });
+
+
+    const { ws, isConnected } = useWebSocket();
+
+    useEffect(() => {
+        if (isConnected && ws) {
+            ws.send(JSON.stringify({ type: 'get_loc', busNumber: 'BUS127' }));
+
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                console.log("🚀 ~ useEffect ~ message:", message)
+
+                if (message.type === 'location' && message.busNumber === 'BUS127') {
+                    const { lat, lng, hdop } = message.data;
+                    console.log("🚀 ~ useEffect ~ lng:", lng)
+                    console.log("🚀 ~ useEffect ~ lat:", lat)
+                    setBusLocation({ lat, lng, hdop });
+                }
+
+                console.log("Live Bus Data:", message);
+            };
+        }
+    }, [isConnected, ws]);
+
     return (
         <>
             <Navbar />
@@ -68,13 +104,55 @@ const HomePage = () => {
                             Live Bus Locations
                         </h2>
                         <div className="h-[400px] rounded-lg overflow-hidden z-0 relative">
-                            <MapContainer center={[31.6340, 74.8723]} zoom={13} className="h-full w-full">
-                                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                                {busLocations.map((bus) => (
-                                    <Marker key={bus.id} position={bus.position as [number, number]}>
-                                        <Popup>Bus {bus.busNumber}</Popup>
-                                    </Marker>
+
+                            <MapContainer
+                                center={[31.6340, 74.8723]}
+                                zoom={13}
+                                className="h-full w-full"
+                            >
+                                <TileLayer
+                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                />
+                                {busLocation && busLocations.map((bus) => (
+                                    <>
+                                        <Marker key={bus.id} position={[busLocation.lat, busLocation.lng]}
+                                            icon={busLocationIcon}
+                                        >
+                                            <Popup>Bus {bus.busNumber}</Popup>
+                                        </Marker>
+                                        <Circle
+                                            center={[busLocation.lat, busLocation.lng]}
+                                            radius={busLocation.hdop ? busLocation.hdop * 20 : 50} // multiply hdop to estimate accuracy
+                                            pathOptions={{ color: 'blue', fillOpacity: 0.1 }}
+                                        />
+                                    </>
                                 ))}
+
+
+
+                                {/* 
+                                    {stops.length > 1 && <Polyline positions={routePolyline} color="blue" />} */}
+                                {/* {stops.map((stop, index) => (
+                                    <Marker
+                                        key={stop.id}
+                                        position={[stop.latitude, stop.longitude]}
+                                        icon={index === 0 ? startIcon : index === stops.length - 1 ? endIcon : defaultIcon}
+                                    >
+                                        <Popup>
+                                            <div className="text-center space-y-1" style={{ minWidth: '120px', padding: '4px' }}>
+                                                <MapPin className="inline-block text-primary mb-1" size={14} />
+                                                <p className="font-medium text-sm">{stop.stopName}</p>
+                                                <p className="text-xs text-gray-600">Stop #{stop.stopOrder}</p>
+                                                {stop.distanceFromPrevious > 0 && (
+                                                    <p className="text-xs text-gray-600">
+                                                        Distance: {stop.distanceFromPrevious.toFixed(2)} km
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </Popup>
+                                    </Marker>
+                                ))} */}
                             </MapContainer>
                         </div>
                     </div>

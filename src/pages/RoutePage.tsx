@@ -14,7 +14,7 @@ import { AppDispatch } from "@/store";
 import { setProgress } from '@/store/progressSlice';
 import { toast } from 'sonner';
 import { Tooltip, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Route, RouteResponse, Stop } from '@/types';
+import { RouteResponse, Stop } from '@/types';
 import { fetchRouteData, deleteRouteData, fetchStops } from '@/api';
 import { useNavigate } from 'react-router-dom';
 
@@ -86,9 +86,9 @@ function RoutePage() {
                 dispatch(setProgress(100));
             };
             getData();
-        }, 800); // Wait 500ms after user stops typing
+        }, 800);
 
-        return () => clearTimeout(delayDebounce); // Cleanup
+        return () => clearTimeout(delayDebounce);
     }, [currentPage, dispatch, searchQuery]);
 
 
@@ -206,7 +206,6 @@ function RoutePage() {
                         </DialogContent>
                     </Dialog>
 
-                    {/* Map Dialog */}
                     <Dialog open={isMapOpen} onOpenChange={setIsMapOpen}>
                         <DialogContent className="max-w-5xl">
                             <DialogHeader>
@@ -252,7 +251,6 @@ function RoutePage() {
                         </DialogContent>
                     </Dialog>
 
-                    {/* Table */}
                     <div className="rounded-lg border bg-card overflow-x-auto">
                         <Table>
                             <TableHeader>
@@ -290,8 +288,8 @@ function RoutePage() {
                                                         <Eye
                                                             className="w-4 h-4 cursor-pointer text-muted-foreground"
                                                             onClick={async () => {
-                                                                const data: Route = await fetchStops(route.id);
-                                                                setStops(data.stops);
+                                                                const data: Stop[] = await fetchStops(route.id);
+                                                                setStops(data);
                                                                 setIsMapOpen(true);
                                                             }}
                                                         />

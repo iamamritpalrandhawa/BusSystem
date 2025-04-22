@@ -6,8 +6,7 @@ import ProfileDropdown from "./ProfileDropdown"
 
 export default function Navbar() {
     return (
-        <header className="flex h-20 w-[90%] shrink-0 items-center px-4 md:px-6 justify-between relative" style={{ margin: '0 auto' }}>
-            {/* Mobile Menu */}
+        <header className=" flex h-20 w-[90%] shrink-0 items-center px-4 md:px-6 justify-between relative" style={{ margin: '0 auto' }}>
             <Sheet>
                 <SheetTrigger asChild>
                     <Button variant="outline" size="icon" className="lg:hidden">
@@ -34,8 +33,8 @@ export default function Navbar() {
                         <Link to='/routes' className="flex w-full items-center py-2 text-lg font-semibold" >
                             Routes
                         </Link>
-                        <Link to='/' className="flex w-full items-center py-2 text-lg font-semibold" >
-                            Schedule Creation
+                        <Link to='/schedules' className="flex w-full items-center py-2 text-lg font-semibold" >
+                            Schedule
                         </Link>
                     </div>
                 </SheetContent>
@@ -76,12 +75,12 @@ export default function Navbar() {
                 >
                     Routes
                 </Link>
-                <Link to='/'
+                <Link to='/schedules'
 
                     className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:text-gray-900 focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-gray-100/50 data-[state=open]:bg-gray-100/50 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50 dark:focus:bg-gray-800 dark:focus:text-gray-50 dark:data-[active]:bg-gray-800/50 dark:data-[state=open]:bg-gray-800/50"
 
                 >
-                    Schedule Creation
+                    Schedule
                 </Link>
 
                 <ProfileDropdown />
@@ -89,8 +88,7 @@ export default function Navbar() {
         </header>
     )
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function MenuIcon(props: any) {
+function MenuIcon(props: unknown) {
     return (
         <svg
             {...props}

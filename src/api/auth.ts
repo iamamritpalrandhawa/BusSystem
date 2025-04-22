@@ -1,4 +1,4 @@
-import { Bus } from "@/types";
+import { Bus, ScheduleItem, ScheduleResponse, Stop } from "@/types";
 import { Route, RouteResponse } from "@/types";
 export const fetchUserData = async () => {
   try {
@@ -53,7 +53,6 @@ export const fetchStudentData = async (
 
     const data = await response.json();
 
-    // ✅ Map API response to expected state shape
     return {
       success: data.success,
       count: data.count,
@@ -221,7 +220,7 @@ export const createRoute = async (data: {
 };
 
 export const saveStops = async (
-  routeId: string, // The routeId for the specific route
+  routeId: string,
   stops: Array<{
     stopName: string;
     latitude: number;
@@ -231,10 +230,9 @@ export const saveStops = async (
     estimatedTime: number;
   }>
 ) => {
-  const token = getToken(); // Retrieve token for authorization
+  const token = getToken();
 
   try {
-    // Send POST request to add stops to a specific route
     const response = await fetch(
       `https://bus-api.abhicracker.com/api/routes/${routeId}/stops`,
       {
@@ -259,7 +257,7 @@ export const fetchRouteData = async (
   pageNo: number = 1,
   search: string = ""
 ): Promise<RouteResponse> => {
-  const token = getToken(); // Retrieve token for authorization
+  const token = getToken();
 
   try {
     const response = await fetch(
@@ -321,7 +319,7 @@ export const deleteRouteData = async (id: string) => {
   }
 };
 
-export const fetchStops = async (id: string): Promise<Route> => {
+export const fetchRoute = async (id: string): Promise<Route> => {
   try {
     const response = await fetch(
       `https://bus-api.abhicracker.com/api/routes/${id}`
@@ -363,6 +361,24 @@ export const fetchStops = async (id: string): Promise<Route> => {
         schedules: 0,
       },
     };
+  }
+};
+export const fetchStops = async (id: string): Promise<Stop[]> => {
+  try {
+    const response = await fetch(
+      `https://bus-api.abhicracker.com/api/routes/${id}/stops`
+    );
+    const result = await response.json();
+
+    if (result.success) {
+      return result.data as Stop[];
+    } else {
+      console.error("Failed to fetch stops:", result);
+      return [];
+    }
+  } catch (error) {
+    console.error("Error fetching stops:", error);
+    return [];
   }
 };
 
@@ -438,5 +454,216 @@ export const updateStops = async (
   } catch (error) {
     console.error("Error updating stops:", error);
     return { success: false };
+  }
+};
+
+export async function fetchBuses() {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No token found in localStorage");
+    }
+
+    const response = await fetch(`https://bus-api.abhicracker.com/api/buses`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    return data.data
+      .filter((bus: { status: string }) => bus.status === "ACTIVE")
+      .map(
+        (bus: {
+          id: string;
+          number: string;
+          model: string;
+          capacity: number;
+          status: string;
+        }) => ({
+          id: bus.id,
+          number: bus.number,
+          model: bus.model,
+          capacity: bus.capacity,
+          status: bus.status,
+        })
+      );
+  } catch (error) {
+    console.error("Error fetching buses:", error);
+    throw error;
+  }
+}
+
+export async function fetchRoutes() {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No token found in localStorage");
+    }
+
+    const response = await fetch("https://bus-api.abhicracker.com/api/routes", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    return data.data.map((route: Route) => ({
+      id: route.id,
+      name: route.name,
+      startLocation: route.startLocation,
+      endLocation: route.endLocation,
+    }));
+  } catch (error) {
+    console.error("Error fetching routes:", error);
+    throw error;
+  }
+}
+
+export async function createSchedule(scheduleData: unknown) {
+  const token = getToken();
+  try {
+    const response = await fetch(
+      "https://bus-api.abhicracker.com/api/schedules",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(scheduleData),
+      }
+    );
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      console.error("❌ Failed to create schedule:", responseData);
+      return {
+        success: false,
+        message:
+          responseData.message ||
+          "Something went wrong while creating schedule",
+      };
+    }
+
+    console.log("📅 Schedule Created:", responseData);
+    return {
+      success: true,
+      data: responseData,
+    };
+  } catch (error) {
+    console.error("❌ Error creating schedule:", error);
+    return {
+      success: false,
+      message: "Network or server error occurred.",
+    };
+  }
+}
+
+export const fetchScheduleData = async (
+  pageNo: number,
+  searchQuery: string
+): Promise<ScheduleResponse> => {
+  try {
+    const response = await fetch(
+      `https://bus-api.abhicracker.com/api/schedules?page=${pageNo}&limit=10&search=${searchQuery}`
+    );
+    const responseData = await response.json();
+
+    return {
+      success: responseData.success,
+      count: responseData.count || 0,
+      pageNO: responseData.pagination?.page || pageNo,
+      pages: responseData.pagination?.totalPages || 1,
+      data: responseData.data || [],
+    };
+  } catch (error) {
+    console.error("Error fetching route data:", error);
+    return {
+      success: false,
+      count: 0,
+      pages: 0,
+      pageNO: pageNo,
+      data: [],
+    };
+  }
+};
+
+export const deleteScheduleData = async (id: string) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No token found in localStorage");
+    }
+
+    const response = await fetch(
+      `https://bus-api.abhicracker.com/api/schedules/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("Error deleting schedule data:", error);
+    throw error;
+  }
+};
+
+export const fetchSchedule = async (id: string): Promise<ScheduleItem> => {
+  try {
+    const response = await fetch(
+      `https://bus-api.abhicracker.com/api/schedules/${id}`
+    );
+    const result = await response.json();
+
+    if (result.success) {
+      return result.data as ScheduleItem;
+    } else {
+      console.error("Failed to fetch schedule:", result);
+      return {} as ScheduleItem;
+    }
+  } catch (error) {
+    console.error("Error fetching schedule:", error);
+    return {} as ScheduleItem;
+  }
+};
+export const updateSchedule = async (id: string, data: unknown) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No token found in localStorage");
+    }
+
+    const response = await fetch(
+      `https://bus-api.abhicracker.com/api/schedules/${id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    const result = await response.json();
+
+    return result;
+  } catch (error) {
+    console.error("Error editing schedule data:", error);
+    throw error;
   }
 };

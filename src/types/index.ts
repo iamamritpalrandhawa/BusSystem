@@ -82,3 +82,51 @@ export type RouteResponse = {
   pages: number;
   data: Route[];
 };
+
+export interface ScheduleItem {
+  id: string;
+  busId: string;
+  routeId: string;
+  startTime: string;
+  endTime: string;
+  isOneTime: boolean;
+  repeatDays: string[];
+  createdAt: string;
+  updatedAt: string;
+  bus: {
+    id: string;
+    number: string;
+    capacity: number;
+    model: string;
+    status: string;
+  };
+
+  route: {
+    id: string;
+    name: string;
+    startLocation: string;
+    endLocation: string;
+    distanceKm: number;
+    totalTime: string;
+  };
+  stops: {
+    id: string;
+    stopId: string;
+    startTime: string;
+    endTime: string;
+    order: number;
+    stopName: string;
+    latitude: number;
+    longitude: number;
+    distanceFromPrevious: number;
+    estimatedTime: number;
+  }[];
+}
+
+export type ScheduleResponse = {
+  success: boolean;
+  count: number;
+  pageNO: number;
+  pages: number;
+  data: ScheduleItem[];
+};

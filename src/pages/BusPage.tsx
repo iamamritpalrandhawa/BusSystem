@@ -52,9 +52,9 @@ function BusPage() {
                 }
             };
             getData();
-        }, 800); // Debounce: 500ms delay
+        }, 800);
 
-        return () => clearTimeout(delayDebounce); // Clean up on re-render
+        return () => clearTimeout(delayDebounce);
     }, [currentPage, searchQuery, dispatch]);
 
 
@@ -139,7 +139,6 @@ function BusPage() {
         form.reset();
     };
 
-    // Function to render pagination items
     const renderPaginationItems = () => {
         const items = [];
         const totalPages = busData.pages;
@@ -167,7 +166,7 @@ function BusPage() {
     return (
         <>
             <Navbar />
-            <div className="bg-background px-6 space-y-8">
+            <div className=" px-6 space-y-8">
                 <div className="container mx-auto space-y-6">
                     <div className="flex flex-col space-y-4 md:flex-row md:justify-between md:items-center">
                         <h1 className="text-3xl font-bold tracking-tight">Buses</h1>

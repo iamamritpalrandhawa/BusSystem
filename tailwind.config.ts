@@ -84,7 +84,8 @@ const config: Config = {
       },
     },
   },
-  plugins: [tailwindAnimate],
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  plugins: [tailwindAnimate, require("tailwind-scrollbar")],
 };
 
 export default config;
