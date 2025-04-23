@@ -16,11 +16,13 @@ import { AppDispatch } from "@/store";
 import { setProgress } from '@/store/progressSlice';
 import { toast } from 'sonner';
 import { useWebSocket } from '@/context/WebSocketContext';
+import { useSearchParams } from 'react-router-dom';
+
 
 function BusPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [devices, setDevices] = useState<{ device_id: string }[]>([]);
-    const [deviceId, setDeviceId] = useState<string>('');  // state for deviceId
+    const [deviceId, setDeviceId] = useState<string>('');  
 
     const [currentPage, setCurrentPage] = useState(1);
     const [busData, setBusData] = useState<BusResponse>({ success: true, count: 0, pageNO: 1, pages: 1, data: [] });
@@ -30,6 +32,14 @@ function BusPage() {
 
     const [editingBus, setEditingBus] = useState<Bus | null>(null);
     const dispatch = useDispatch<AppDispatch>();
+    const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const type = searchParams.get('type');
+    if (type === 'create') {
+      setIsModalOpen(true);
+    }
+  }, [searchParams]);
 
 
     const { ws, isConnected } = useWebSocket();
@@ -152,7 +162,7 @@ function BusPage() {
 
     const onSubmit = async (data: { id: string; number: string; model: string; capacity: number; status: string; driverName: string; driverNumber: string; }) => {
         try {
-            dispatch(setProgress(30)); // Start the progress bar
+            dispatch(setProgress(30)); 
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let value: any;
@@ -169,25 +179,19 @@ function BusPage() {
                 }
 
             } else {
-                // If creating a new bus, call createBusData
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const { id, ...newBusData } = data;
                 newBusData.status = 'INACTIVE';
                 value = await createBusData(newBusData);
                 if (value.success)
                     if (isConnected && ws) {
-                        // Send the message to pair the device
                         ws.send(JSON.stringify({ type: 'pair_device', device_id: deviceId, busNumber: newBusData.number }));
 
-                        // Set up a listener for the response
                         ws.onmessage = (event) => {
                             const message = JSON.parse(event.data);
                             console.log("🚀 ~ useEffect ~ message:", message);
 
-                            // Check if the message type is 'pair_response'
                             if (message.type === 'pair_response') {
                                 if (message.success) {
-                                    // If pairing is successful, call the function to update bus data
                                     value.data.status = 'ACTIVE';
                                     editBusData(value.data)
                                         .then(() => {
@@ -215,35 +219,29 @@ function BusPage() {
             }
 
             if (value.success) {
-                // If the operation is successful, update the bus data
                 setBusData(prevState => ({
                     ...prevState,
                     data: editingBus
-                        ? prevState.data.map(bus => (bus.id === value.data.id ? { ...bus, ...value.data } : bus)) // Update existing bus
-                        : [...prevState.data, value.data] // Add new bus to the list
+                        ? prevState.data.map(bus => (bus.id === value.data.id ? { ...bus, ...value.data } : bus)) 
+                        : [...prevState.data, value.data] 
                 }));
 
-                // Show success message
                 toast.success(editingBus ? 'Bus updated successfully!' : 'Bus created successfully!');
             } else {
-                // Handle failed response
                 toast.error('Something went wrong.');
             }
 
-            // Complete the progress
             dispatch(setProgress(100));
         } catch (error) {
-            // If an error occurs, reset progress and log the error
             dispatch(setProgress(100));
             console.error('Error during bus update/create:', error);
 
-            // Show an error message to the user
             toast.error('An error occurred while processing the bus data.');
         } finally {
-            // Close the modal and reset form state regardless of success or failure
-            setIsModalOpen(false); // Close modal
-            setEditingBus(null); // Reset the editing state
-            form.reset(); // Reset the form values
+           
+            setIsModalOpen(false); 
+            setEditingBus(null); 
+            form.reset(); 
         }
     };
 
@@ -392,8 +390,8 @@ function BusPage() {
                                         <div className="grid gap-2">
                                             <Label htmlFor="device">Device</Label>
                                             <Select
-                                                onValueChange={(value) => setDeviceId(value)} // Set state when value changes
-                                                value={deviceId} // Use the deviceId state for controlled value
+                                                onValueChange={(value) => setDeviceId(value)} 
+                                                value={deviceId} 
                                             >
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Select a device" />
