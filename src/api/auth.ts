@@ -117,12 +117,16 @@ export const fetchBusData = async (pageNo: number = 1, search: string = "") => {
           model: string;
           capacity: string;
           status: string;
+          driverName: string;
+          driverNumber: string;
         }) => ({
           id: bus.id,
           number: bus.number,
           model: bus.model,
           capacity: bus.capacity,
           status: bus.status,
+          driverName: bus.driverName,
+          driverNumber: bus.driverNumber,
         })
       ),
     };
@@ -666,4 +670,28 @@ export const updateSchedule = async (id: string, data: unknown) => {
     console.error("Error editing schedule data:", error);
     throw error;
   }
+};
+
+export const createBusData = async (data: {
+  number: string;
+  model: string;
+  capacity: number;
+  status: string;
+  driverName?: string;
+  driverNumber?: string;
+}) => {
+  const token = getToken();
+
+  const response = await fetch("https://bus-api.abhicracker.com/api/buses", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  const responseData = await response.json();
+
+  return responseData;
 };

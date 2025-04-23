@@ -37,6 +37,8 @@ export type Bus = {
   capacity: number;
   model: string;
   status: string;
+  driverName: string;
+  driverNumber: string;
 };
 
 export type BusResponse = {

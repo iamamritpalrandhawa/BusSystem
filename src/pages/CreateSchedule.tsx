@@ -29,6 +29,14 @@ import { useNavigate } from 'react-router-dom';
 
 
 
+const convertToDate = (timeString: string): Date => {
+    // Assume '1970-01-01' as a dummy date to avoid invalid Date issues
+    const [hour, minute] = timeString.split(':').map(Number);
+    const date = new Date('1970-01-01T00:00:00Z');
+    date.setHours(hour);
+    date.setMinutes(minute);
+    return date;
+};
 
 
 const scheduleSchema = z.object({
@@ -44,18 +52,35 @@ const scheduleSchema = z.object({
         )
         .superRefine((stops, ctx) => {
             stops.forEach((stop, i) => {
-                // 1) same-stop validation
-                if (stop.endTime <= stop.startTime) {
+                const startTime = convertToDate(stop.startTime);
+                const endTime = convertToDate(stop.endTime);
+                const startedPM = startTime.getHours() >= 12;
+                const endedAM = endTime.getHours() < 12;
+                if (startedPM && endedAM) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: `Cannot cross midnight – end time must be later on the same day`,
+                        path: [i, 'endTime'],
+                    });
+                    return; // skip any further checks for this stop
+                }
+
+                // 1) Same-stop validation
+                if (endTime <= startTime) {
                     ctx.addIssue({
                         code: z.ZodIssueCode.custom,
                         message: `Departure must be after arrival`,
                         path: [i, 'endTime'],
                     });
                 }
-                // 2) chaining: next-start > this-end
+
+                // 2) Chaining: next-start > this-end
                 if (i < stops.length - 1) {
                     const next = stops[i + 1];
-                    if (next.startTime <= stop.endTime) {
+                    const nextStartTime = convertToDate(next.startTime);
+
+                    // Check if the next stop's start time is after the current stop's end time
+                    if (nextStartTime <= endTime) {
                         ctx.addIssue({
                             code: z.ZodIssueCode.custom,
                             message: `Next arrival must be after previous departure`,
@@ -97,7 +122,7 @@ export function CreateSchedule() {
 
     const selectedRouteId = watch('routeId');
     const selectedBusId = watch('busId');
-    const isOneTime = watch('isOneTime');
+    // const isOneTime = watch('isOneTime');
 
 
     useEffect(() => {
@@ -309,39 +334,39 @@ export function CreateSchedule() {
                                     <h2 className="text-xl font-semibold">Schedule Type</h2>
                                 </div>
                                 <div className="space-y-4">
-                                    {!isOneTime && (
-                                        <div className="grid grid-cols-7 gap-2">
-                                            {(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const).map(day => {
-                                                const selectedDays = watch('repeatDays') || [];
-                                                const isSelected = selectedDays.includes(day);
+                                    {/* {!isOneTime && ( */}
+                                    <div className="grid grid-cols-7 gap-2">
+                                        {(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const).map(day => {
+                                            const selectedDays = watch('repeatDays') || [];
+                                            const isSelected = selectedDays.includes(day);
 
-                                                return (
-                                                    <label
-                                                        key={day}
-                                                        className={`flex flex-col items-center p-2 rounded-lg cursor-pointer transition-colors
+                                            return (
+                                                <label
+                                                    key={day}
+                                                    className={`flex flex-col items-center p-2 rounded-lg cursor-pointer transition-colors
             ${isSelected ? 'bg-white/20 text-white font-medium' : 'bg-white/5 hover:bg-white/10 text-gray-300'}`}
-                                                    >
-                                                        <input
-                                                            type="checkbox"
-                                                            value={day}
-                                                            {...register('repeatDays')}
-                                                            className="sr-only"
-                                                        />
-                                                        <span className="text-sm">{day}</span>
-                                                    </label>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        value={day}
+                                                        {...register('repeatDays')}
+                                                        className="sr-only"
+                                                    />
+                                                    <span className="text-sm">{day}</span>
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
+                                    {/* )} */}
 
-                                    <label className="flex items-center space-x-2">
+                                    {/* <label className="flex items-center space-x-2">
                                         <input
                                             type="checkbox"
                                             {...register('isOneTime')}
                                             className="rounded border-white/10 bg-white/5 text-white focus:ring-white/20"
                                         />
                                         <span>One-time schedule</span>
-                                    </label>
+                                    </label> */}
 
 
 

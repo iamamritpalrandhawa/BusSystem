@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { ScheduleItem, ScheduleResponse } from '@/types';
 import { fetchScheduleData, deleteScheduleData } from '@/api';
+import { format } from 'date-fns-tz';
 
 function SchedulePage() {
     const [searchQuery, setSearchQuery] = useState('');
@@ -94,9 +95,9 @@ function SchedulePage() {
 
 
 
-    const formatTime = (iso: string) => {
+    const formatTime = (iso: string, timeZone: string) => {
         const date = new Date(iso);
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return format(date, 'HH:mm', { timeZone });
     };
 
     return (
@@ -169,7 +170,7 @@ function SchedulePage() {
                                                             <li key={stop.id} className="space-y-1">
                                                                 <div className="font-medium">{stop.stopName}</div>
                                                                 <div className="text-sm text-gray-500">
-                                                                    <Timer className="inline w-4 h-4 text-muted-foreground" /> Start: {formatTime(stop.startTime)} | End: {formatTime(stop.endTime)}
+                                                                    <Timer className="inline w-4 h-4 text-muted-foreground" /> Start: {formatTime(stop.startTime, 'Asia/Kolkata')} | End: {formatTime(stop.endTime, 'Asia/Kolkata')}
                                                                 </div>
                                                             </li>
                                                         ))}
@@ -180,8 +181,8 @@ function SchedulePage() {
 
                                     <div className="space-y-2">
                                         <h3 className="font-medium">Time</h3>
-                                        <p className="text-gray-600">Start: {formatTime(previewData.startTime)}</p>
-                                        <p className="text-gray-600">End: {formatTime(previewData.endTime)}</p>
+                                        <p className="text-gray-600">Start: {formatTime(previewData.startTime, 'Asia/Kolkata')}</p>
+                                        <p className="text-gray-600">End: {formatTime(previewData.endTime, 'Asia/Kolkata')}</p>
                                         <p className="text-sm text-gray-500">
                                             <Timer className="inline w-4 h-4 text-muted-foreground" /> Duration: {getDuration(previewData.startTime, previewData.endTime)}
                                         </p>
@@ -238,8 +239,8 @@ function SchedulePage() {
                                                 {schedule.bus.number} ({schedule.bus.model})
                                             </div>
                                         </TableCell>
-                                        <TableCell><Clock className="inline w-4 h-4 mr-1 text-muted-foreground" />{formatTime(schedule.startTime)}</TableCell>
-                                        <TableCell><Clock className="inline w-4 h-4 mr-1 text-muted-foreground" />{formatTime(schedule.endTime)}</TableCell>
+                                        <TableCell><Clock className="inline w-4 h-4 mr-1 text-muted-foreground" />{formatTime(schedule.startTime, 'Asia/Kolkata')}</TableCell>
+                                        <TableCell><Clock className="inline w-4 h-4 mr-1 text-muted-foreground" />{formatTime(schedule.endTime, 'Asia/Kolkata')}</TableCell>
                                         <TableCell>
                                             <Timer className="inline    w-4 h-4 text-muted-foreground" /> {getDuration(schedule.startTime, schedule.endTime)}
                                         </TableCell>

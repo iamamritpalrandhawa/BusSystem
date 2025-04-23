@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import { Bus, Route, Clock, MapPin } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
-import type { Bus as BusType } from '../types';
 import Navbar from '@/components/Nabvar';
 import L from 'leaflet';
 import { useWebSocket } from "../context/WebSocketContext";
@@ -10,7 +9,7 @@ import { useEffect, useState } from 'react';
 
 
 
-const activeBuses: BusType[] = [
+const activeBuses = [
     { id: '1', number: 'BUS-101', capacity: 40, model: 'Volvo 9400', status: 'active', },
     { id: '2', number: 'BUS-102', capacity: 35, model: 'Mercedes-Benz Citaro', status: 'active', }
 ];
@@ -47,13 +46,13 @@ const HomePage = () => {
 
     useEffect(() => {
         if (isConnected && ws) {
-            ws.send(JSON.stringify({ type: 'get_loc', busNumber: 'BUS127' }));
+            ws.send(JSON.stringify({ type: 'get_loc', busNumber: '36' }));
 
             ws.onmessage = (event) => {
                 const message = JSON.parse(event.data);
                 console.log("🚀 ~ useEffect ~ message:", message)
 
-                if (message.type === 'location' && message.busNumber === 'BUS127') {
+                if (message.type === 'location' && message.busNumber === '36') {
                     const { lat, lng, hdop } = message.data;
                     console.log("🚀 ~ useEffect ~ lng:", lng)
                     console.log("🚀 ~ useEffect ~ lat:", lat)
