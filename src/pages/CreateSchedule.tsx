@@ -110,7 +110,7 @@ export function CreateSchedule() {
     const navigate = useNavigate();
 
     const { register, handleSubmit, watch, setValue,
-        // reset,
+    
         formState: { errors } } = useForm<ScheduleFormData>({
             resolver: zodResolver(scheduleSchema),
             defaultValues: {
@@ -189,7 +189,7 @@ export function CreateSchedule() {
         }
 
         try {
-            dispatch(setProgress(30)); // Start progress
+            dispatch(setProgress(30)); 
 
             const stopsWithISO = data.stops.map((s) => {
                 const isoStart = new Date(`1970-01-01T${s.startTime}:00Z`).toISOString();

@@ -64,17 +64,17 @@ interface Stop {
 }
 
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371; // Earth's radius in km
+    const R = 6371; 
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c; // Distance in kilometers
+    return R * c; 
 }
 
 function estimateTravelTime(distance: number): number {
-    const averageSpeed = 35; // Average speed in km/h
-    return (distance / averageSpeed) * 60; // Time in minutes
+    const averageSpeed = 35; 
+    return (distance / averageSpeed) * 60; 
 }
 
 
@@ -265,7 +265,7 @@ export default function UpdateRoute() {
                 });
                 return updateDistances(updatedStops);
             });
-            setEditingStopId(null); // Reset editing state after saving changes
+            setEditingStopId(null); 
         } else {
             setSelectedLocation(new LatLng(nearest.lat, nearest.lng));
         }
@@ -300,7 +300,6 @@ export default function UpdateRoute() {
                 estimatedTime: 0,
             };
 
-            // Use a functional update to avoid closures
             setStops(prevStops => {
                 const newStops = [...prevStops, newStop];
                 return updateDistances(newStops);
@@ -339,13 +338,11 @@ export default function UpdateRoute() {
     }, [stops]);
 
     const onSubmit = async (data: RouteFormData) => {
-        // Step 1: Validate that at least two stops are present
         if (stops.length < 2) {
             toast.error('Please add at least two stops to update the route');
             return;
         }
 
-        // Step 2: Prepare the route data
         const routeData: {
             name: string;
             startLocation: string;
@@ -361,11 +358,9 @@ export default function UpdateRoute() {
         };
 
         try {
-            // Step 3: Update the route using PUT request
             const routeResponse = await updateRoute(routeId, routeData);
 
             if (routeResponse.success) {
-                // Step 4: Prepare stops data
                 const stopsData: {
                     stopName: string;
                     latitude: number;
@@ -382,11 +377,9 @@ export default function UpdateRoute() {
                     estimatedTime: stop.estimatedTime,
                 }));
 
-                // Step 5: Update the stops using PUT request
                 const saveResponse = await updateStops(routeId, stopsData);
 
                 if (saveResponse.success) {
-                    // On success, navigate and show success toast
                     navigate('/');
                     toast.success('Route and stops updated successfully!');
                 } else {
@@ -399,12 +392,11 @@ export default function UpdateRoute() {
             console.error('Error updating route or stops:', error);
             toast.error('Something went wrong while updating.');
         } finally {
-            // Step 6: Reset states after the operation
-            setStops([]); // Clear stops array
-            setSelectedLocation(null); // Clear selected location
-            setStopName(''); // Reset stop name
-            reset(); // Reset the form
-            dispatch(setProgress(100)); // Update progress to 100%
+            setStops([]); 
+            setSelectedLocation(null); 
+            setStopName(''); 
+            reset(); 
+            dispatch(setProgress(100)); 
         }
     };
 
@@ -550,11 +542,10 @@ export default function UpdateRoute() {
                                                         {selectedLocation.lat.toFixed(4)}, {selectedLocation.lng.toFixed(4)}
                                                     </p>
 
-                                                    {/* Deselect button */}
                                                     <button
                                                         className="mt-1 text-xs text-red-500 hover:underline"
                                                         onClick={(e) => {
-                                                            e.stopPropagation(); // ⛔️ Prevent map click
+                                                            e.stopPropagation(); 
                                                             setSelectedLocation(null);
                                                             setStopName('');
                                                         }}

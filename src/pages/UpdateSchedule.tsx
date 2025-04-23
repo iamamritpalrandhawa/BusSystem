@@ -130,7 +130,6 @@ export default function UpdateSchedule() {
                 if (id) {
                     const schedule: ScheduleItem = await fetchSchedule(id);
                     if (schedule) {
-                        // Convert ISO to HH:mm
                         const stopsWithTime = schedule.stops.map((stop: {
                             id: string;
                             stopId: string;
@@ -270,7 +269,7 @@ export default function UpdateSchedule() {
                                     value={selectedBusId || ''}
                                     onValueChange={(value) => {
                                         setSelectedBusId(value);
-                                        setValue('busId', value);  // Update form state
+                                        setValue('busId', value);  
                                     }}
                                 >
                                     <SelectTrigger className="w-full bg-white/5 border border-white/10 text-white rounded-lg">
@@ -312,7 +311,7 @@ export default function UpdateSchedule() {
                                     value={selectedRouteId || ''}
                                     onValueChange={(value) => {
                                         setSelectedRouteId(value);
-                                        setValue('routeId', value);  // Update form state
+                                        setValue('routeId', value);  
                                     }}
                                 >
                                     <SelectTrigger className="w-full bg-white/5 border border-white/10 text-white rounded-lg">

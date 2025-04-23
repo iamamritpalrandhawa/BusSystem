@@ -1,4 +1,3 @@
-// RoutePage.tsx
 
 import { useEffect, useState } from 'react';
 import { Input } from "@/components/ui/input";
@@ -21,12 +20,10 @@ import { useNavigate } from 'react-router-dom';
 
 import 'leaflet/dist/leaflet.css';
 
-// Fix for default marker icon
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 
-// Define marker icons
 const defaultIcon = new Icon({
     iconUrl: icon,
     shadowUrl: iconShadow,
