@@ -1,4 +1,3 @@
-// src/components/RouteGuard.tsx
 "use client";
 
 import { Navigate, Outlet, useLocation } from "react-router-dom";
@@ -16,7 +15,7 @@ export default function RouteGuard() {
   const dispatch = useDispatch<AppDispatch>();
 
 
-  const publicRoutes = ["/login"]; // Add more public routes if needed
+  const publicRoutes = ["/login"]; 
   const isPublicRoute = publicRoutes.includes(location.pathname);
 
   useEffect(() => {
@@ -28,16 +27,13 @@ export default function RouteGuard() {
 
   }, [isAuthenticated, isPublicRoute, dispatch]);
 
-  // ✅ If authenticated and trying to access a public route (like /login), redirect to home
   if (isAuthenticated && isPublicRoute) {
     return <Navigate to="/" replace />;
   }
 
-  // ✅ If not authenticated and trying to access private route, redirect to login
   if (!isAuthenticated && !isPublicRoute) {
     return <Navigate to="/login" replace />;
   }
 
-  // ✅ Otherwise, allow access
   return <Outlet />;
 }

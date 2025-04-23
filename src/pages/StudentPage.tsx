@@ -53,9 +53,9 @@ function StudentPage() {
             };
 
             getData();
-        }, 800); // 500ms debounce delay
+        }, 800); 
 
-        return () => clearTimeout(delayDebounce); // Cleanup timeout
+        return () => clearTimeout(delayDebounce); 
     }, [currentPage, searchQuery, dispatch]);
 
 

@@ -1,4 +1,3 @@
-// import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "@/styles/globals.css";
 import HomePage from "./pages/HomePage.tsx";
@@ -22,7 +21,6 @@ import { Toaster } from 'sonner';
 
 
 createRoot(document.getElementById("root")!).render(
-  // <StrictMode>
   <BrowserRouter>
     <AuthProvider>
       <Provider store={store}>
@@ -49,5 +47,4 @@ createRoot(document.getElementById("root")!).render(
       </Provider>
     </AuthProvider>
   </BrowserRouter>
-  // </StrictMode> 
 );

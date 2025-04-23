@@ -1,4 +1,3 @@
-// store/progressSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface ProgressState {

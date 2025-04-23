@@ -62,17 +62,17 @@ interface Stop {
 }
 
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371; // Earth's radius in km
+    const R = 6371; 
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c; // Distance in kilometers
+    return R * c; 
 }
 
 function estimateTravelTime(distance: number): number {
-    const averageSpeed = 35; // Average speed in km/h
-    return (distance / averageSpeed) * 60; // Time in minutes
+    const averageSpeed = 35; 
+    return (distance / averageSpeed) * 60; 
 }
 
 
@@ -232,7 +232,7 @@ export default function CreateRoute() {
                 });
                 return updateDistances(updatedStops);
             });
-            setEditingStopId(null); // Reset editing state after saving changes
+            setEditingStopId(null); 
         } else {
             setSelectedLocation(new LatLng(nearest.lat, nearest.lng));
         }
@@ -346,12 +346,11 @@ export default function CreateRoute() {
             console.error('Error creating route or saving stops:', error);
             toast.error('Something went wrong.');
         } finally {
-            // Reset states after successful route creation
             setStops([]);
             setSelectedLocation(null);
             setStopName('');
             reset();
-            dispatch(setProgress(100)); // Update progress to 100% after route creation
+            dispatch(setProgress(100)); 
         }
     };
 
@@ -495,11 +494,10 @@ export default function CreateRoute() {
                                                         {selectedLocation.lat.toFixed(4)}, {selectedLocation.lng.toFixed(4)}
                                                     </p>
 
-                                                    {/* Deselect button */}
                                                     <button
                                                         className="mt-1 text-xs text-red-500 hover:underline"
                                                         onClick={(e) => {
-                                                            e.stopPropagation(); // ⛔️ Prevent map click
+                                                            e.stopPropagation();
                                                             setSelectedLocation(null);
                                                             setStopName('');
                                                         }}

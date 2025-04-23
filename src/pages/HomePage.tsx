@@ -20,7 +20,7 @@ const routes = [
 ];
 
 const busLocations = [
-    { id: 1, position: [31.619980, 74.876485], busNumber: 'BUS-101' }, // Near Golden Temple
+    { id: 1, position: [31.619980, 74.876485], busNumber: 'BUS-101' }, 
 ];
 const upcomingSchedules = [
     { id: 1, busNumber: 'BUS-101', route: 'Golden Temple - Amritsar Junction', departure: '08:00 AM' },
@@ -36,9 +36,9 @@ const HomePage = () => {
 
     const busLocationIcon = L.divIcon({
         html: `<div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-md"></div>`,
-        className: '', // remove default leaflet styles
+        className: '', 
         iconSize: [16, 16],
-        iconAnchor: [8, 8], // center the icon
+        iconAnchor: [8, 8], 
     });
 
 
@@ -122,15 +122,15 @@ const HomePage = () => {
                                         </Marker>
                                         <Circle
                                             center={[busLocation.lat, busLocation.lng]}
-                                            radius={busLocation.hdop ? busLocation.hdop * 20 : 50} // multiply hdop to estimate accuracy
+                                            radius={busLocation.hdop ? busLocation.hdop * 20 : 50} 
                                             pathOptions={{ color: 'blue', fillOpacity: 0.1 }}
                                         />
                                     </>
                                 ))}
 
+                                
 
-
-                                {/* 
+                     {/* 
                                     {stops.length > 1 && <Polyline positions={routePolyline} color="blue" />} */}
                                 {/* {stops.map((stop, index) => (
                                     <Marker
@@ -156,7 +156,7 @@ const HomePage = () => {
                         </div>
                     </div>
 
-                    {/* Upcoming Schedules */}
+                  
                     <div className="rounded-xl shadow-md hover:shadow-lg  p-4 border">
                         <h2 className="text-lg font-semibold flex items-center mb-2">
                             <Clock className="w-5 h-5 mr-2" />
