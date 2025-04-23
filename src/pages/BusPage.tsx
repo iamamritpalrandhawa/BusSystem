@@ -22,7 +22,7 @@ import { useSearchParams } from 'react-router-dom';
 function BusPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [devices, setDevices] = useState<{ device_id: string }[]>([]);
-    const [deviceId, setDeviceId] = useState<string>('');  
+    const [deviceId, setDeviceId] = useState<string>('');
 
     const [currentPage, setCurrentPage] = useState(1);
     const [busData, setBusData] = useState<BusResponse>({ success: true, count: 0, pageNO: 1, pages: 1, data: [] });
@@ -34,12 +34,12 @@ function BusPage() {
     const dispatch = useDispatch<AppDispatch>();
     const [searchParams] = useSearchParams();
 
-  useEffect(() => {
-    const type = searchParams.get('type');
-    if (type === 'create') {
-      setIsModalOpen(true);
-    }
-  }, [searchParams]);
+    useEffect(() => {
+        const type = searchParams.get('type');
+        if (type === 'create') {
+            setIsModalOpen(true);
+        }
+    }, [searchParams]);
 
 
     const { ws, isConnected } = useWebSocket();
@@ -162,7 +162,7 @@ function BusPage() {
 
     const onSubmit = async (data: { id: string; number: string; model: string; capacity: number; status: string; driverName: string; driverNumber: string; }) => {
         try {
-            dispatch(setProgress(30)); 
+            dispatch(setProgress(30));
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let value: any;
@@ -179,6 +179,7 @@ function BusPage() {
                 }
 
             } else {
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const { id, ...newBusData } = data;
                 newBusData.status = 'INACTIVE';
                 value = await createBusData(newBusData);
@@ -193,6 +194,7 @@ function BusPage() {
                             if (message.type === 'pair_response') {
                                 if (message.success) {
                                     value.data.status = 'ACTIVE';
+                                    delete value.data.routeId;
                                     editBusData(value.data)
                                         .then(() => {
                                             if (value?.data?.id) {
@@ -222,8 +224,8 @@ function BusPage() {
                 setBusData(prevState => ({
                     ...prevState,
                     data: editingBus
-                        ? prevState.data.map(bus => (bus.id === value.data.id ? { ...bus, ...value.data } : bus)) 
-                        : [...prevState.data, value.data] 
+                        ? prevState.data.map(bus => (bus.id === value.data.id ? { ...bus, ...value.data } : bus))
+                        : [...prevState.data, value.data]
                 }));
 
                 toast.success(editingBus ? 'Bus updated successfully!' : 'Bus created successfully!');
@@ -238,10 +240,10 @@ function BusPage() {
 
             toast.error('An error occurred while processing the bus data.');
         } finally {
-           
-            setIsModalOpen(false); 
-            setEditingBus(null); 
-            form.reset(); 
+
+            setIsModalOpen(false);
+            setEditingBus(null);
+            form.reset();
         }
     };
 
@@ -390,8 +392,8 @@ function BusPage() {
                                         <div className="grid gap-2">
                                             <Label htmlFor="device">Device</Label>
                                             <Select
-                                                onValueChange={(value) => setDeviceId(value)} 
-                                                value={deviceId} 
+                                                onValueChange={(value) => setDeviceId(value)}
+                                                value={deviceId}
                                             >
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Select a device" />

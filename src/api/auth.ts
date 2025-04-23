@@ -132,7 +132,6 @@ export const fetchAllStudents = async () => {
   }
 };
 
-
 export const fetchBusData = async (pageNo: number = 1, search: string = "") => {
   try {
     const token = localStorage.getItem("token");
@@ -534,12 +533,16 @@ export async function fetchBuses() {
           model: string;
           capacity: number;
           status: string;
+          driverName: string;
+          driverNumber: string;
         }) => ({
           id: bus.id,
           number: bus.number,
           model: bus.model,
           capacity: bus.capacity,
           status: bus.status,
+          driverName: bus.driverName,
+          driverNumber: bus.driverNumber,
         })
       );
   } catch (error) {
@@ -655,7 +658,7 @@ export const fetchSchedules = async () => {
     }
 
     const response = await fetch(
-      `https://bus-api.abhicracker.com/api/schedules`, 
+      `https://bus-api.abhicracker.com/api/schedules`,
       {
         method: "GET",
         headers: {
@@ -667,7 +670,7 @@ export const fetchSchedules = async () => {
 
     const data = await response.json();
 
-  return data.data;
+    return data.data;
   } catch (error) {
     console.error("Error fetching all students:", error);
     throw error;
