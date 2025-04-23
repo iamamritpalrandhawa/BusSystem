@@ -85,6 +85,53 @@ export const fetchStudentData = async (
     throw error;
   }
 };
+export const fetchAllStudents = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No token found in localStorage");
+    }
+
+    const response = await fetch(
+      `https://bus-api.abhicracker.com/api/admin/users`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    return data.data.map(
+      (student: {
+        username: string;
+        extra: {
+          roll: string;
+          course: string;
+          address: string;
+          phone: string;
+          email: string;
+        };
+        name: string;
+      }) => ({
+        id: student.username,
+        rollnumber: student.extra.roll,
+        name: student.name,
+        stream: student.extra.course,
+        address: student.extra.address,
+        mobileNo: student.extra.phone,
+        email: student.extra.email,
+      })
+    );
+  } catch (error) {
+    console.error("Error fetching all students:", error);
+    throw error;
+  }
+};
+
 
 export const fetchBusData = async (pageNo: number = 1, search: string = "") => {
   try {
@@ -597,6 +644,33 @@ export const fetchScheduleData = async (
       pageNO: pageNo,
       data: [],
     };
+  }
+};
+
+export const fetchSchedules = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No token found in localStorage");
+    }
+
+    const response = await fetch(
+      `https://bus-api.abhicracker.com/api/schedules`, 
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+  return data.data;
+  } catch (error) {
+    console.error("Error fetching all students:", error);
+    throw error;
   }
 };
 
